@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "ai-agent"
+version = "0.1.0"
+description = "A modular AI agent system"
+authors = ["Richard Chukwu <richinex@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+typer = "^0.9.0"
+rich = "^13.7.0"
+pydantic = "^2.5.2"
+docstring-parser = "^0.15"
+python-dotenv = "^1.0.0"
+openai = "^1.3.5"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.4.3"
+black = "^23.11.0"
+isort = "^5.12.0"
+mypy = "^1.7.1"
+
+[tool.poetry.scripts]
+ai-agent = "ai_agent.cli.app:run"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
