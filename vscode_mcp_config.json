@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "berry-mcp-test": {
+      "command": "python",
+      "args": ["-m", "berry_mcp", "--log-level", "DEBUG"],
+      "cwd": "/home/richard/Documents/python_projects/berry-mcp"
+    }
+  }
+}

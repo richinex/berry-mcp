@@ -1,0 +1,11 @@
+{
+  "inputs": [],
+  "servers": {
+    "berry-mcp-test": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-m", "berry_mcp"],
+      "env": {}
+    }
+  }
+}

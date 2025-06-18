@@ -14,7 +14,8 @@ from .utils.logging import setup_logging
 
 async def run_stdio_server(tool_modules=None, server_name=None, log_level="INFO"):
     """Run MCP server with stdio transport"""
-    setup_logging(level=log_level)
+    # Disable logging for stdio mode to avoid MCP protocol interference
+    setup_logging(level=log_level, disable_stdio_logging=True)
     
     # Create server with configurable name
     name = server_name or os.getenv("BERRY_MCP_SERVER_NAME", "berry-mcp-server")
