@@ -208,6 +208,7 @@ __marimo__/
 examples/workspace/
 *.local.*
 .local/
+packages/
 
 # Temporary files
 temp/
