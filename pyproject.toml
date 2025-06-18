@@ -1,27 +1,100 @@
-[tool.poetry]
-name = "ai-agent"
+[project]
+name = "berry-mcp"
 version = "0.1.0"
-description = "A modular AI agent system"
-authors = ["Richard Chukwu <richinex@gmail.com>"]
+description = "Universal MCP server framework - easily create and deploy Model Context Protocol servers with any tools"
+authors = [
+    {name = "Richard Chukwu", email = "richinex@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11", 
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Server",
+    "Topic :: Communications",
+]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-typer = "^0.9.0"
-rich = "^13.7.0"
-pydantic = "^2.5.2"
-docstring-parser = "^0.15"
-python-dotenv = "^1.0.0"
-openai = "^1.3.5"
+dependencies = [
+    # Core MCP dependencies
+    "mcp>=1.6.0",
+    "pydantic>=2.5.2",
+    "typing-extensions>=4.8.0",
+    
+    # Utility dependencies
+    "python-dotenv>=1.0.0",
+]
 
-[tool.poetry.dev-dependencies]
-pytest = "^7.4.3"
-black = "^23.11.0"
-isort = "^5.12.0"
-mypy = "^1.7.1"
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+]
+http = [
+    "fastapi>=0.115.12",
+    "uvicorn>=0.34.1",
+    "sse-starlette>=2.2.1",
+]
+# Tool-specific dependencies (examples)
+pdf = [
+    "PyPDF2>=3.0.1",
+    "pymupdf4llm>=0.0.22",
+]
+web = [
+    "requests>=2.28.1",
+    "beautifulsoup4>=4.12.0",
+    "selenium>=4.9.0",
+]
+data = [
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+]
 
-[tool.poetry.scripts]
-ai-agent = "ai_agent.cli.app:run"
+[project.scripts]
+berry-mcp = "berry_mcp.server:cli_main"
+berry-mcp-server = "berry_mcp.server:cli_main"
+
+[project.urls]
+Homepage = "https://github.com/richinex/berry-mcp-server"
+Repository = "https://github.com/richinex/berry-mcp-server"
+Issues = "https://github.com/richinex/berry-mcp-server/issues"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.ruff.isort]
+known-first-party = ["berry_mcp"]
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"

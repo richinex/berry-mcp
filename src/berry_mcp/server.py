@@ -1,0 +1,178 @@
+"""
+Main entry point for Berry MCP Server
+"""
+
+import asyncio
+import sys
+import argparse
+import os
+from pathlib import Path
+from .core.server import MCPServer
+from .core.transport import StdioTransport, SSETransport
+from .utils.logging import setup_logging
+
+
+async def run_stdio_server(tool_modules=None, server_name=None, log_level="INFO"):
+    """Run MCP server with stdio transport"""
+    setup_logging(level=log_level)
+    
+    # Create server with configurable name
+    name = server_name or os.getenv("BERRY_MCP_SERVER_NAME", "berry-mcp-server")
+    server = MCPServer(name=name)
+    
+    # Load tool modules if specified
+    if tool_modules:
+        for module in tool_modules:
+            server.tool_registry.auto_discover_tools(module)
+    else:
+        # Auto-discover from default tools package
+        from . import tools
+        server.tool_registry.auto_discover_tools(tools)
+    
+    transport = StdioTransport()
+    await server.run(transport)
+
+
+async def run_http_server(host: str = "localhost", port: int = 8000):
+    """Run MCP server with HTTP/SSE transport"""
+    try:
+        from fastapi import FastAPI
+        import uvicorn
+    except ImportError:
+        print("FastAPI and uvicorn required for HTTP server mode", file=sys.stderr)
+        sys.exit(1)
+    
+    setup_logging(level="INFO")
+    
+    # Create FastAPI app
+    app = FastAPI(title="Berry MCP Server", version="0.1.0")
+    
+    # Create server and transport
+    server = MCPServer()
+    transport = SSETransport(host, port)
+    transport.app = app
+    
+    # Connect server to transport
+    await server.connect(transport)
+    
+    # Auto-discover tools from tools package
+    from . import tools
+    server.tool_registry.auto_discover_tools(tools)
+    
+    # Add a root endpoint
+    @app.get("/")
+    async def root():
+        return {
+            "message": "Berry MCP Server",
+            "version": "0.1.0",
+            "transport": "HTTP/SSE",
+            "endpoints": {
+                "message": "POST /message - Send MCP messages",
+                "sse": "GET /sse - Server-sent events stream",
+                "ping": "GET /ping - Health check"
+            }
+        }
+    
+    # Start the server
+    config = uvicorn.Config(app, host=host, port=port, log_level="info")
+    server_instance = uvicorn.Server(config)
+    await server_instance.serve()
+
+
+def cli_main():
+    """CLI entry point"""
+    parser = argparse.ArgumentParser(
+        description="Berry MCP Server - Universal MCP server framework",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Environment Variables:
+  BERRY_MCP_SERVER_NAME    Server name identifier
+  BERRY_MCP_LOG_LEVEL      Logging level (DEBUG, INFO, WARNING, ERROR)
+  BERRY_MCP_TOOLS_PATH     Comma-separated paths to tool modules
+
+Examples:
+  # Run with stdio (for VS Code integration)
+  berry-mcp
+  
+  # Run HTTP server
+  berry-mcp --transport http --port 8080
+  
+  # With custom tools module
+  BERRY_MCP_TOOLS_PATH=my_tools berry-mcp
+"""
+    )
+    parser.add_argument(
+        "--transport", 
+        choices=["stdio", "http"], 
+        default=os.getenv("BERRY_MCP_TRANSPORT", "stdio"),
+        help="Transport method (default: stdio, env: BERRY_MCP_TRANSPORT)"
+    )
+    parser.add_argument(
+        "--host", 
+        default=os.getenv("BERRY_MCP_HOST", "localhost"),
+        help="Host for HTTP transport (default: localhost, env: BERRY_MCP_HOST)"
+    )
+    parser.add_argument(
+        "--port", 
+        type=int, 
+        default=int(os.getenv("BERRY_MCP_PORT", "8000")),
+        help="Port for HTTP transport (default: 8000, env: BERRY_MCP_PORT)"
+    )
+    parser.add_argument(
+        "--log-level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        default=os.getenv("BERRY_MCP_LOG_LEVEL", "INFO"),
+        help="Logging level (default: INFO, env: BERRY_MCP_LOG_LEVEL)"
+    )
+    parser.add_argument(
+        "--server-name",
+        default=os.getenv("BERRY_MCP_SERVER_NAME"),
+        help="Server name identifier (env: BERRY_MCP_SERVER_NAME)"
+    )
+    parser.add_argument(
+        "--tools-path",
+        default=os.getenv("BERRY_MCP_TOOLS_PATH"),
+        help="Comma-separated paths to tool modules (env: BERRY_MCP_TOOLS_PATH)"
+    )
+    
+    args = parser.parse_args()
+    
+    # Load custom tool modules if specified
+    tool_modules = None
+    if args.tools_path:
+        import importlib
+        tool_modules = []
+        for path in args.tools_path.split(","):
+            path = path.strip()
+            if path:
+                try:
+                    module = importlib.import_module(path)
+                    tool_modules.append(module)
+                except ImportError as e:
+                    print(f"Warning: Could not import tool module '{path}': {e}", file=sys.stderr)
+    
+    try:
+        if args.transport == "stdio":
+            asyncio.run(run_stdio_server(
+                tool_modules=tool_modules,
+                server_name=args.server_name,
+                log_level=args.log_level
+            ))
+        elif args.transport == "http":
+            asyncio.run(run_http_server(args.host, args.port))
+    except KeyboardInterrupt:
+        print("Server stopped by user", file=sys.stderr)
+        sys.exit(0)
+    except Exception as e:
+        print(f"Server error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+# For backwards compatibility
+async def main():
+    """Main entry point (backwards compatibility)"""
+    await run_stdio_server()
+
+
+if __name__ == "__main__":
+    cli_main()
