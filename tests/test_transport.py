@@ -337,13 +337,13 @@ async def test_transport_abstractions():
 async def test_stdio_transport_connect_error_handling():
     """Test stdio transport connection error handling"""
     transport = StdioTransport()
-    
+
     # Mock connection failure
-    with patch('asyncio.get_running_loop') as mock_loop:
+    with patch("asyncio.get_running_loop") as mock_loop:
         mock_loop.side_effect = Exception("Connection failed")
-        
+
         await transport.connect()
-        
+
         # Should handle error gracefully
         assert transport.closed is True
         assert transport._stdin_task is None
@@ -353,17 +353,17 @@ async def test_stdio_transport_connect_error_handling():
 async def test_stdio_transport_already_connected():
     """Test stdio transport handles already connected state"""
     transport = StdioTransport()
-    
+
     # Mock an active task
     mock_task = asyncio.create_task(asyncio.sleep(1))
     transport._stdin_task = mock_task
-    
-    with patch('asyncio.get_running_loop') as mock_loop:
+
+    with patch("asyncio.get_running_loop") as mock_loop:
         await transport.connect()
-        
+
         # Should not try to connect again
         mock_loop.assert_not_called()
-    
+
     # Clean up
     mock_task.cancel()
     try:
@@ -377,12 +377,12 @@ async def test_stdio_transport_already_connected():
 async def test_stdio_transport_stdin_reader_error():
     """Test stdio transport handles stdin reader errors"""
     transport = StdioTransport()
-    
+
     # Test the _read_stdin_async method with no reader
     transport._stdin_reader = None
-    
+
     await transport._read_stdin_async()
-    
+
     # Should handle gracefully and close
     assert transport.closed is True
 
@@ -391,16 +391,16 @@ async def test_stdio_transport_stdin_reader_error():
 async def test_stdio_transport_receive_eof():
     """Test stdio transport handles EOF correctly"""
     transport = StdioTransport()
-    
+
     # Mock reader that returns empty bytes (EOF)
     class EOFReader:
         async def read(self, size):
             return b""  # EOF
-    
+
     transport._stdin_reader = EOFReader()
-    
+
     await transport._read_stdin_async()
-    
+
     # Should close on EOF
     assert transport.closed is True
 
@@ -409,23 +409,23 @@ async def test_stdio_transport_receive_eof():
 async def test_stdio_transport_json_decode_error():
     """Test stdio transport handles JSON decode errors"""
     transport = StdioTransport()
-    
+
     # Mock reader with invalid JSON
     class InvalidJSONReader:
         def __init__(self):
             self.call_count = 0
-        
+
         async def read(self, size):
             self.call_count += 1
             if self.call_count == 1:
                 return b"invalid json here\n"  # Invalid JSON
             return b""  # EOF after invalid JSON
-    
+
     transport._stdin_reader = InvalidJSONReader()
-    
-    with patch.object(transport, 'send') as mock_send:
+
+    with patch.object(transport, "send") as mock_send:
         await transport._read_stdin_async()
-        
+
         # Should have sent error response
         mock_send.assert_called_once()
         error_msg = mock_send.call_args[0][0]
@@ -437,23 +437,23 @@ async def test_stdio_transport_json_decode_error():
 async def test_stdio_transport_task_cancellation():
     """Test stdio transport handles task cancellation"""
     transport = StdioTransport()
-    
+
     # Mock reader that will be cancelled
     class CancellableReader:
         async def read(self, size):
             await asyncio.sleep(10)  # Long sleep to allow cancellation
-    
+
     transport._stdin_reader = CancellableReader()
-    
+
     # Start the reader task
     task = asyncio.create_task(transport._read_stdin_async())
-    
+
     # Let it start
     await asyncio.sleep(0.01)
-    
+
     # Cancel the task
     task.cancel()
-    
+
     try:
         await task
     except asyncio.CancelledError:
@@ -464,22 +464,22 @@ async def test_stdio_transport_task_cancellation():
 async def test_stdio_transport_unexpected_error():
     """Test stdio transport handles unexpected errors"""
     transport = StdioTransport()
-    
+
     # Mock reader that raises unexpected error
     class ErrorReader:
         def __init__(self):
             self.call_count = 0
-        
+
         async def read(self, size):
             self.call_count += 1
             if self.call_count == 1:
                 raise RuntimeError("Unexpected error")
             return b""  # EOF
-    
+
     transport._stdin_reader = ErrorReader()
-    
+
     await transport._read_stdin_async()
-    
+
     # Should close on unexpected error
     assert transport.closed is True
 
@@ -489,7 +489,7 @@ async def test_stdio_transport_receive_closed():
     """Test stdio transport receive when closed"""
     transport = StdioTransport()
     transport.closed = True
-    
+
     # Should return None when closed and queue empty
     result = await transport.receive()
     assert result is None
@@ -499,7 +499,7 @@ async def test_stdio_transport_receive_closed():
 async def test_stdio_transport_close_task_timeout():
     """Test stdio transport close with task timeout"""
     transport = StdioTransport()
-    
+
     # Mock a task that won't cancel quickly
     async def slow_task():
         try:
@@ -507,12 +507,12 @@ async def test_stdio_transport_close_task_timeout():
         except asyncio.CancelledError:
             await asyncio.sleep(2)  # Delay cancellation
             raise
-    
+
     transport._stdin_task = asyncio.create_task(slow_task())
-    
+
     # Close should handle timeout
     await transport.close()
-    
+
     # Should be closed regardless
     assert transport.closed is True
 
@@ -521,20 +521,20 @@ async def test_stdio_transport_close_task_timeout():
 async def test_stdio_transport_close_task_error():
     """Test stdio transport close with task error"""
     transport = StdioTransport()
-    
+
     # Mock a task that raises error during cancellation
     async def error_task():
         await asyncio.sleep(10)
-    
+
     task = asyncio.create_task(error_task())
     transport._stdin_task = task
-    
+
     # Mock the task to raise error when awaited
-    with patch.object(asyncio, 'wait_for') as mock_wait:
+    with patch.object(asyncio, "wait_for") as mock_wait:
         mock_wait.side_effect = Exception("Task error")
-        
+
         await transport.close()
-        
+
         # Should handle error and still close
         assert transport.closed is True
 
@@ -543,7 +543,7 @@ async def test_stdio_transport_close_task_error():
 async def test_stdio_transport_message_type_detection():
     """Test stdio transport message type detection"""
     transport = StdioTransport()
-    
+
     # Test different message types
     assert transport._get_message_type({"result": "test"}) == "response"
     assert transport._get_message_type({"error": {"code": -1}}) == "error"
@@ -556,16 +556,16 @@ async def test_sse_transport_message_handler():
     """Test SSE transport message handler"""
     try:
         transport = SSETransport("localhost", 8001)
-        
+
         async def test_handler(message):
             return {"response": "test"}
-        
+
         transport.set_message_handler(test_handler)
-        
+
         assert transport._message_handler == test_handler
-        
+
         await transport.close()
-        
+
     except ImportError:
         pytest.skip("FastAPI not available")
 
@@ -576,10 +576,10 @@ async def test_sse_transport_send_closed():
     try:
         transport = SSETransport("localhost", 8001)
         transport.closed = True
-        
+
         # Should handle send gracefully when closed
         await transport.send({"test": "message"})
-        
+
     except ImportError:
         pytest.skip("FastAPI not available")
 
@@ -589,24 +589,24 @@ async def test_sse_transport_send_serialization_error():
     """Test SSE transport handles serialization errors"""
     try:
         transport = SSETransport("localhost", 8001)
-        
+
         # Add mock client
         mock_queue = asyncio.Queue()
         transport.clients.append(mock_queue)
-        
+
         # Try to send non-serializable data
         class NonSerializable:
             pass
-        
+
         message = {"data": NonSerializable()}
-        
+
         await transport.send(message)
-        
+
         # Queue should remain empty due to serialization error
         assert mock_queue.empty()
-        
+
         await transport.close()
-        
+
     except ImportError:
         pytest.skip("FastAPI not available")
 
@@ -616,17 +616,17 @@ async def test_sse_transport_client_queue_full():
     """Test SSE transport handles full client queues"""
     try:
         transport = SSETransport("localhost", 8001)
-        
+
         # Create a full queue
         full_queue = asyncio.Queue(maxsize=1)
         await full_queue.put("blocking_item")
         transport.clients.append(full_queue)
-        
+
         # Should handle queue full gracefully
         await transport.send({"test": "message"})
-        
+
         await transport.close()
-        
+
     except ImportError:
         pytest.skip("FastAPI not available")
 
@@ -636,20 +636,20 @@ async def test_sse_transport_client_timeout():
     """Test SSE transport handles client timeouts"""
     try:
         transport = SSETransport("localhost", 8001)
-        
+
         # Mock queue that times out
         class TimeoutQueue:
             async def put(self, item, timeout=None):
                 await asyncio.sleep(1)  # Will timeout
-        
+
         timeout_queue = TimeoutQueue()
         transport.clients.append(timeout_queue)
-        
+
         # Should handle timeout gracefully
         await transport.send({"test": "message"})
-        
+
         await transport.close()
-        
+
     except ImportError:
         pytest.skip("FastAPI not available")
 
@@ -659,13 +659,13 @@ async def test_sse_transport_receive_not_applicable():
     """Test SSE transport receive method"""
     try:
         transport = SSETransport("localhost", 8001)
-        
+
         # Should return None and log warning
         result = await transport.receive()
         assert result is None
-        
+
         await transport.close()
-        
+
     except ImportError:
         pytest.skip("FastAPI not available")
 
@@ -676,10 +676,10 @@ async def test_sse_transport_already_closed():
     try:
         transport = SSETransport("localhost", 8001)
         transport.closed = True
-        
+
         # Should handle double close gracefully
         await transport.close()
-        
+
     except ImportError:
         pytest.skip("FastAPI not available")
 
@@ -688,19 +688,19 @@ async def test_sse_transport_already_closed():
 async def test_transport_base_receive_not_implemented():
     """Test base transport receive raises NotImplementedError"""
     from berry_mcp.core.transport import Transport
-    
+
     class MinimalTransport(Transport):
         async def connect(self):
             pass
-        
+
         async def send(self, message):
             pass
-        
+
         async def close(self):
             pass
-    
+
     transport = MinimalTransport()
-    
+
     with pytest.raises(NotImplementedError):
         await transport.receive()
 
@@ -709,12 +709,12 @@ async def test_transport_base_receive_not_implemented():
 async def test_stdio_transport_empty_lines():
     """Test stdio transport handles empty lines"""
     transport = StdioTransport()
-    
+
     # Mock reader with empty lines
     class EmptyLineReader:
         def __init__(self):
             self.call_count = 0
-        
+
         async def read(self, size):
             self.call_count += 1
             if self.call_count == 1:
@@ -722,11 +722,11 @@ async def test_stdio_transport_empty_lines():
             elif self.call_count == 2:
                 return b'{"jsonrpc": "2.0", "id": 1}\n'
             return b""  # EOF
-    
+
     transport._stdin_reader = EmptyLineReader()
-    
+
     await transport._read_stdin_async()
-    
+
     # Should have processed the valid JSON message
     message = await transport.receive()
     assert message is not None
@@ -738,29 +738,29 @@ async def test_sse_transport_ping_endpoint():
     """Test SSE transport ping endpoint"""
     try:
         from fastapi import FastAPI
-        
+
         transport = SSETransport("localhost", 8001)
         app = FastAPI()
         transport.app = app
-        
+
         await transport.connect()
-        
+
         # Mock request
         mock_request = MagicMock()
         mock_request.client = None
-        
+
         # Test ping endpoint
         response = await transport._handle_ping(mock_request)
-        
+
         assert response.status_code == 200
         content = response.body.decode()
         data = json.loads(content)
         assert data["status"] == "ok"
         assert "timestamp" in data
         assert "connected_clients" in data
-        
+
         await transport.close()
-        
+
     except ImportError:
         pytest.skip("FastAPI not available")
 
@@ -770,24 +770,24 @@ async def test_sse_transport_handle_message_invalid_json():
     """Test SSE transport handles invalid JSON in HTTP requests"""
     try:
         from fastapi import FastAPI, Request, BackgroundTasks
-        
+
         transport = SSETransport("localhost", 8001)
         app = FastAPI()
         transport.app = app
-        
+
         # Mock request with invalid JSON
         mock_request = AsyncMock(spec=Request)
         mock_request.body = AsyncMock(return_value=b"invalid json")
         mock_background = MagicMock(spec=BackgroundTasks)
-        
+
         response = await transport._handle_message(mock_request, mock_background)
-        
+
         assert response.status_code == 400
         content = json.loads(response.body.decode())
         assert "Invalid JSON" in content["error"]
-        
+
         await transport.close()
-        
+
     except ImportError:
         pytest.skip("FastAPI not available")
 
@@ -797,25 +797,25 @@ async def test_sse_transport_handle_message_missing_method():
     """Test SSE transport handles missing method parameter"""
     try:
         from fastapi import FastAPI, Request, BackgroundTasks
-        
+
         transport = SSETransport("localhost", 8001)
         app = FastAPI()
         transport.app = app
-        
+
         # Mock request with missing method
         mock_request = AsyncMock(spec=Request)
         request_data = {"jsonrpc": "2.0", "id": 1, "params": {}}
         mock_request.body = AsyncMock(return_value=json.dumps(request_data).encode())
         mock_background = MagicMock(spec=BackgroundTasks)
-        
+
         response = await transport._handle_message(mock_request, mock_background)
-        
+
         assert response.status_code == 400
         content = json.loads(response.body.decode())
         assert "Missing method parameter" in content["error"]
-        
+
         await transport.close()
-        
+
     except ImportError:
         pytest.skip("FastAPI not available")
 
@@ -825,31 +825,31 @@ async def test_sse_transport_handle_initialize():
     """Test SSE transport handles initialize method"""
     try:
         from fastapi import FastAPI, Request, BackgroundTasks
-        
+
         transport = SSETransport("localhost", 8001)
         app = FastAPI()
         transport.app = app
-        
+
         # Mock handler
         async def mock_handler(message):
             return {"jsonrpc": "2.0", "id": 1, "result": {"initialized": True}}
-        
+
         transport.set_message_handler(mock_handler)
-        
+
         # Mock initialize request
         mock_request = AsyncMock(spec=Request)
         request_data = {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}
         mock_request.body = AsyncMock(return_value=json.dumps(request_data).encode())
         mock_background = MagicMock(spec=BackgroundTasks)
-        
+
         response = await transport._handle_message(mock_request, mock_background)
-        
+
         assert response.status_code == 200
         content = json.loads(response.body.decode())
         assert content["result"]["initialized"] is True
-        
+
         await transport.close()
-        
+
     except ImportError:
         pytest.skip("FastAPI not available")
 
@@ -859,32 +859,32 @@ async def test_sse_transport_background_execution_handler_exception():
     """Test SSE transport background execution when handler raises exception"""
     try:
         transport = SSETransport("localhost", 8001)
-        
+
         # Mock handler that raises exception
         async def mock_handler(message):
             raise ValueError("Handler error")
-        
+
         transport.set_message_handler(mock_handler)
-        
+
         # Mock send method to capture error
         sent_messages = []
-        
+
         async def mock_send(message):
             sent_messages.append(message)
-        
+
         transport.send = mock_send
-        
+
         request_data = {"jsonrpc": "2.0", "id": 1, "method": "test", "params": {}}
-        
+
         await transport._run_handler_background(request_data)
-        
+
         # Should have sent error message
         assert len(sent_messages) == 1
         error_msg = sent_messages[0]
         assert "Background execution failed" in error_msg["error"]["message"]
-        
+
         await transport.close()
-        
+
     except ImportError:
         pytest.skip("FastAPI not available")
 
@@ -894,25 +894,25 @@ async def test_sse_transport_send_different_event_types():
     """Test SSE transport sends different event types correctly"""
     try:
         transport = SSETransport("localhost", 8001)
-        
+
         # Add mock client
         mock_queue = asyncio.Queue()
         transport.clients.append(mock_queue)
-        
+
         # Test different message types
         test_cases = [
             ({"method": "notifications/progress", "params": {}}, "progress"),
             ({"method": "notifications/info", "params": {}}, "system"),
             ({"result": {"data": "test"}}, "message"),
         ]
-        
+
         for message, expected_event in test_cases:
             await transport.send(message)
-            
+
             sse_event = await mock_queue.get()
             assert sse_event["event"] == expected_event
-        
+
         await transport.close()
-        
+
     except ImportError:
         pytest.skip("FastAPI not available")
