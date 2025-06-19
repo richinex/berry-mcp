@@ -81,8 +81,8 @@ class EnhancedSSETransport(SSETransport):
                 self.app.post("/")(self._handle_message)
                 self.app.post("/message")(self._handle_message)
 
-            # SSE endpoint
-            self.app.get("/sse", response_class=lambda: None)(self._handle_sse)
+            # SSE endpoint  
+            self.app.get("/sse")(self._handle_sse)
             self.app.post("/sse")(self._handle_sse_post)
 
             # Health and status endpoints
@@ -106,17 +106,20 @@ class EnhancedSSETransport(SSETransport):
             f"EnhancedSSETransport: Ready with authentication={'enabled' if self.require_auth else 'disabled'}"
         )
 
-    def _create_authenticated_handler(self, handler):
+    def _create_authenticated_handler(self, handler: Any) -> Any:
         """Create an authenticated version of a handler"""
         if not FASTAPI_AVAILABLE or not self.auth_middleware:
             return handler
 
         async def authenticated_handler(
             request: Request, background_tasks: BackgroundTasks
-        ):
+        ) -> Any:
             # Authenticate request
             try:
-                token_info = await self.auth_middleware.authenticate_request(request)
+                if self.auth_middleware:
+                    token_info = await self.auth_middleware.authenticate_request(request)
+                else:
+                    token_info = None
                 if self.require_auth and not token_info:
                     from fastapi import HTTPException
 
@@ -141,7 +144,7 @@ class EnhancedSSETransport(SSETransport):
 
         return authenticated_handler
 
-    async def _handle_health(self, request: Request = None) -> Any:
+    async def _handle_health(self, request: Request | None = None) -> Any:
         """Enhanced health check endpoint"""
         if not FASTAPI_AVAILABLE:
             return {"error": "FastAPI not available"}
@@ -292,7 +295,7 @@ class EnhancedSSETransport(SSETransport):
 
             raise HTTPException(status_code=500, detail="Failed to process response")
 
-    async def _handle_list_active_prompts(self, request: Request = None) -> Any:
+    async def _handle_list_active_prompts(self, request: Request | None = None) -> Any:
         """List active elicitation prompts"""
         if not self.elicitation_manager or not FASTAPI_AVAILABLE:
             from fastapi import HTTPException
