@@ -13,7 +13,9 @@ from .core.transport import SSETransport, StdioTransport
 from .utils.logging import setup_logging
 
 
-async def run_stdio_server(tool_modules: Any = None, server_name: str | None = None, log_level: str = "INFO") -> None:
+async def run_stdio_server(
+    tool_modules: Any = None, server_name: str | None = None, log_level: str = "INFO"
+) -> None:
     """Run MCP server with stdio transport"""
     # Disable logging for stdio mode to avoid MCP protocol interference
     setup_logging(level=log_level, disable_stdio_logging=True)

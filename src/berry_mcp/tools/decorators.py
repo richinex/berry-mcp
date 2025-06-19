@@ -5,12 +5,12 @@ Tool registration decorators for Berry MCP Server
 import inspect
 import logging
 from collections.abc import Callable
-from typing import Any, get_type_hints, TypeVar, cast
+from typing import Any, TypeVar, cast, get_type_hints
 
 logger = logging.getLogger(__name__)
 
 # Type variable for preserving function type
-F = TypeVar('F', bound=Callable[..., Any])
+F = TypeVar("F", bound=Callable[..., Any])
 
 
 def tool(
@@ -54,15 +54,19 @@ def tool(
         parameters_schema = _generate_parameters_schema(signature, type_hints)
 
         # Store tool metadata on the function
-        # Use cast to tell mypy that we're adding this attribute
-        setattr(func, '_mcp_tool_metadata', {
-            "name": tool_name,
-            "description": tool_description,
-            "parameters": parameters_schema,
-            "function": func,
-            "examples": examples or [],
-            "async": inspect.iscoroutinefunction(func),
-        })
+        # Use setattr to avoid mypy attribute error
+        setattr(  # noqa: B010
+            func,
+            "_mcp_tool_metadata",
+            {
+                "name": tool_name,
+                "description": tool_description,
+                "parameters": parameters_schema,
+                "function": func,
+                "examples": examples or [],
+                "async": inspect.iscoroutinefunction(func),
+            },
+        )
 
         logger.debug(
             f"Tool decorated: {tool_name} ({'async' if inspect.iscoroutinefunction(func) else 'sync'})"
