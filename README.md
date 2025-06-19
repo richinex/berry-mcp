@@ -18,12 +18,12 @@ A universal Model Context Protocol (MCP) server framework that makes it easy to 
 
 ```bash
 # Install from PyPI (when published)
-pip install berry-mcp
+uv add berry-mcp
 
 # Or install from source
 git clone https://github.com/richinex/berry-mcp-server.git
 cd berry-mcp-server
-pip install -e .
+uv pip install -e .
 ```
 
 ### Create Your First Tool
@@ -47,27 +47,26 @@ def greet(name: str, title: str = "friend") -> str:
 
 ```bash
 # Load your custom tools
-BERRY_MCP_TOOLS_PATH=my_tools python -m berry_mcp
+BERRY_MCP_TOOLS_PATH=my_tools uv run python -m berry_mcp
 
 # Or run with built-in example tools
-python -m berry_mcp
+uv run python -m berry_mcp
 ```
 
 ### VS Code Integration
 
-Add to your VS Code `settings.json`:
+Add to your `.vscode/mcp.json`:
 
 ```json
 {
-  "mcp": {
-    "mcpServers": {
-      "my-tools": {
-        "type": "stdio",
-        "command": "python",
-        "args": ["-m", "berry_mcp"],
-        "env": {
-          "BERRY_MCP_TOOLS_PATH": "my_tools"
-        }
+  "inputs": [],
+  "servers": {
+    "my-custom-tools": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "python", "-m", "berry_mcp"],
+      "env": {
+        "BERRY_MCP_TOOLS_PATH": "my_tools"
       }
     }
   }
@@ -94,12 +93,12 @@ Berry MCP comes with example tools to get you started:
 
 ### Multiple Tool Sources
 ```bash
-BERRY_MCP_TOOLS_PATH="my_tools,web_tools,data_processors" python -m berry_mcp
+BERRY_MCP_TOOLS_PATH="my_tools,web_tools,data_processors" uv run python -m berry_mcp
 ```
 
 ### HTTP Server Mode
 ```bash
-python -m berry_mcp --transport http --port 8080
+uv run python -m berry_mcp --transport http --port 8080
 ```
 
 ### Environment Configuration
@@ -107,7 +106,7 @@ python -m berry_mcp --transport http --port 8080
 export BERRY_MCP_SERVER_NAME="my-custom-server"
 export BERRY_MCP_LOG_LEVEL="DEBUG"
 export BERRY_MCP_TOOLS_PATH="my_tools,another_module.tools"
-python -m berry_mcp
+uv run python -m berry_mcp
 ```
 
 ## 🏗️ Architecture

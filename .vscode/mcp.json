@@ -7,6 +7,14 @@
       "args": ["run", "python", "-m", "berry_mcp"],
       "env": {}
     },
+    "berry-mcp-custom-tools": {
+      "type": "stdio",
+      "command": "/home/richard/.local/bin/uv",
+      "args": ["run", "python", "-m", "berry_mcp"],
+      "env": {
+        "BERRY_MCP_TOOLS_PATH": "my_custom_tools"
+      }
+    },
     "berry-mcp-sse": {
       "type": "sse",
       "url": "http://localhost:8080",
