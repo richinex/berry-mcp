@@ -85,12 +85,12 @@ async def read_pdf_text(
 
     try:
 
-        def _extract_markdown_sync():
+        def _extract_markdown_sync() -> str:
             try:
                 logger.debug(
                     f"Calling pymupdf4llm.to_markdown for '{validated_file_path}'"
                 )
-                md_text = pymupdf4llm.to_markdown(str(validated_file_path))
+                md_text: str = pymupdf4llm.to_markdown(str(validated_file_path))
 
                 # Check total page count
                 try:
@@ -213,7 +213,7 @@ async def read_pdf_text_pypdf2(
     file_obj = None
     try:
 
-        def _read_pdf():
+        def _read_pdf() -> str:
             nonlocal file_obj
             file_obj = validated_file_path.open("rb")
             reader = PyPDF2.PdfReader(file_obj)

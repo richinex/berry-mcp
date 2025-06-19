@@ -5,16 +5,19 @@ Tool registration decorators for Berry MCP Server
 import inspect
 import logging
 from collections.abc import Callable
-from typing import Any, get_type_hints
+from typing import Any, get_type_hints, TypeVar, cast
 
 logger = logging.getLogger(__name__)
+
+# Type variable for preserving function type
+F = TypeVar('F', bound=Callable[..., Any])
 
 
 def tool(
     name: str | None = None,
     description: str | None = None,
     examples: list[dict[str, Any]] | None = None,
-) -> Callable[[Callable], Callable]:
+) -> Callable[[F], F]:
     """
     Decorator to register a function as an MCP tool.
 
@@ -38,7 +41,7 @@ def tool(
                 return f.read()
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: F) -> F:
         # Get function metadata
         tool_name = name or func.__name__
         tool_description = description or (func.__doc__ or "").strip()
@@ -51,14 +54,15 @@ def tool(
         parameters_schema = _generate_parameters_schema(signature, type_hints)
 
         # Store tool metadata on the function
-        func._mcp_tool_metadata = {
+        # Use cast to tell mypy that we're adding this attribute
+        setattr(func, '_mcp_tool_metadata', {
             "name": tool_name,
             "description": tool_description,
             "parameters": parameters_schema,
             "function": func,
             "examples": examples or [],
             "async": inspect.iscoroutinefunction(func),
-        }
+        })
 
         logger.debug(
             f"Tool decorated: {tool_name} ({'async' if inspect.iscoroutinefunction(func) else 'sync'})"

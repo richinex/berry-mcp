@@ -15,7 +15,7 @@ class ToolRegistry:
     Registry for managing MCP tools with decorator-based registration
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._tools: dict[str, Callable] = {}
         self._tool_schemas: list[dict[str, Any]] = []
 
@@ -59,7 +59,7 @@ class ToolRegistry:
 
     def register_function(
         self, func: Callable, name: str | None = None, description: str | None = None
-    ):
+    ) -> None:
         """
         Manually register a function as a tool (alternative to decorator approach)
 
@@ -167,7 +167,7 @@ class ToolRegistry:
         """Get all tool schemas"""
         return self._tool_schemas.copy()
 
-    def auto_discover_tools(self, module_or_package):
+    def auto_discover_tools(self, module_or_package: Any) -> None:
         """
         Automatically discover and register tools from a module or package.
 
@@ -197,7 +197,7 @@ class ToolRegistry:
             # Single module
             self._scan_module_for_tools(module_or_package)
 
-    def _scan_module_for_tools(self, module):
+    def _scan_module_for_tools(self, module: Any) -> None:
         """Scan a module for functions decorated with @tool"""
         for name in dir(module):
             obj = getattr(module, name)

@@ -24,20 +24,25 @@ try:
 except ImportError:
     FASTAPI_AVAILABLE = False
 
+    # Type stubs for optional dependencies
+    uvicorn = None  # type: ignore
+    FastAPI = None  # type: ignore
+    StreamingResponse = None  # type: ignore
+
     # Create dummy classes for type hints when FastAPI is not available
-    class Request:
+    class Request:  # type: ignore
         pass
 
-    class Response:
+    class Response:  # type: ignore
         pass
 
-    class BackgroundTasks:
+    class BackgroundTasks:  # type: ignore
         pass
 
-    class JSONResponse:
+    class JSONResponse:  # type: ignore
         pass
 
-    class EventSourceResponse:
+    class EventSourceResponse:  # type: ignore
         pass
 
 
@@ -48,7 +53,7 @@ class Transport(ABC):
     """Abstract base class for MCP transport implementations"""
 
     @abstractmethod
-    async def connect(self):
+    async def connect(self) -> None:
         """Establish connection"""
         pass
 
@@ -69,7 +74,7 @@ class Transport(ABC):
     def set_message_handler(
         self,
         handler: Callable[[dict[str, Any]], Coroutine[Any, Any, dict[str, Any] | None]],
-    ):
+    ) -> None:
         """Set message handler (optional for some transports)"""
         pass
 
@@ -77,14 +82,14 @@ class Transport(ABC):
 class StdioTransport(Transport):
     """Transport using standard input/output for communication"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.closed = False
-        self._receive_queue = asyncio.Queue()
+        self._receive_queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue()
         self._stdin_reader: asyncio.StreamReader | None = None
         self._stdin_task: asyncio.Task | None = None
         logger.info("StdioTransport initialized")
 
-    async def connect(self):
+    async def connect(self) -> None:
         """Connect to stdio streams"""
         logger.info("StdioTransport: Starting connection")
         if self._stdin_task and not self._stdin_task.done():
@@ -109,7 +114,7 @@ class StdioTransport(Transport):
         )
         logger.info("StdioTransport: Connection complete")
 
-    async def _read_stdin_async(self):
+    async def _read_stdin_async(self) -> None:
         """Async stdin reader task"""
         logger.debug("StdioTransport: Starting stdin reader task")
         if not self._stdin_reader:
@@ -214,7 +219,7 @@ class StdioTransport(Transport):
     def set_message_handler(
         self,
         handler: Callable[[dict[str, Any]], Coroutine[Any, Any, dict[str, Any] | None]],
-    ):
+    ) -> None:
         """Set message handler (stdio uses receive() pattern)"""
         logger.debug("StdioTransport: Message handler set")
 
@@ -247,7 +252,7 @@ class StdioTransport(Transport):
 class SSETransport(Transport):
     """Transport using FastAPI with Server-Sent Events"""
 
-    def __init__(self, host: str = "localhost", port: int = 8000):
+    def __init__(self, host: str = "localhost", port: int = 8000) -> None:
         if not FASTAPI_AVAILABLE:
             raise ImportError(
                 "FastAPI and related dependencies required for SSETransport"
@@ -264,12 +269,12 @@ class SSETransport(Transport):
     def set_message_handler(
         self,
         handler: Callable[[dict[str, Any]], Coroutine[Any, Any, dict[str, Any] | None]],
-    ):
+    ) -> None:
         """Set message handler for incoming HTTP requests"""
         self._message_handler = handler
         logger.info("SSETransport: Message handler set")
 
-    async def connect(self):
+    async def connect(self) -> None:
         """Configure FastAPI routes"""
         if not self.app:
             raise RuntimeError("SSETransport requires an assigned FastAPI app instance")
@@ -287,7 +292,7 @@ class SSETransport(Transport):
 
         logger.info(f"SSETransport: Ready for server on {self.host}:{self.port}")
 
-    async def _handle_ping(self, request: Request):
+    async def _handle_ping(self, request: Request) -> Any:
         """Health check endpoint"""
         return JSONResponse(
             {
@@ -297,7 +302,7 @@ class SSETransport(Transport):
             }
         )
 
-    async def _handle_sse(self, request: Request):
+    async def _handle_sse(self, request: Request) -> Any:
         """Handle SSE connections"""
         client_info = (
             f"{request.client.host}:{request.client.port}"
@@ -306,11 +311,11 @@ class SSETransport(Transport):
         )
         logger.info(f"SSE connection from {client_info}")
 
-        client_queue = asyncio.Queue(maxsize=100)
+        client_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=100)
         self.clients.append(client_queue)
         logger.info(f"SSE client connected. Total clients: {len(self.clients)}")
 
-        async def event_generator():
+        async def event_generator() -> Any:
             logger.debug(f"Starting SSE event generator for {client_info}")
             try:
                 # Send connection confirmation
@@ -355,11 +360,11 @@ class SSETransport(Transport):
 
     async def _handle_sse_post(
         self, request: Request, background_tasks: BackgroundTasks
-    ):
+    ) -> Any:
         """Handle POST requests to /sse endpoint (for VS Code MCP compatibility)"""
         return await self._handle_message(request, background_tasks)
 
-    async def _run_handler_background(self, request_data: dict[str, Any]):
+    async def _run_handler_background(self, request_data: dict[str, Any]) -> None:
         """Run message handler in background and send result via SSE"""
         request_id = request_data.get("id")
         method = request_data.get("method", "unknown")
@@ -417,7 +422,7 @@ class SSETransport(Transport):
 
     async def _handle_message(
         self, request: Request, background_tasks: BackgroundTasks
-    ):
+    ) -> Any:
         """Handle incoming HTTP POST requests"""
         try:
             request_body = await request.body()

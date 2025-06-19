@@ -6,20 +6,21 @@ import argparse
 import asyncio
 import os
 import sys
+from typing import Any
 
 from .core.server import MCPServer
 from .core.transport import SSETransport, StdioTransport
 from .utils.logging import setup_logging
 
 
-async def run_stdio_server(tool_modules=None, server_name=None, log_level="INFO"):
+async def run_stdio_server(tool_modules: Any = None, server_name: str | None = None, log_level: str = "INFO") -> None:
     """Run MCP server with stdio transport"""
     # Disable logging for stdio mode to avoid MCP protocol interference
     setup_logging(level=log_level, disable_stdio_logging=True)
 
     # Create server with configurable name
     name = server_name or os.getenv("BERRY_MCP_SERVER_NAME", "berry-mcp-server")
-    server = MCPServer(name=name)
+    server = MCPServer(name=name or "berry-mcp-server")
 
     # Load tool modules if specified
     if tool_modules:
@@ -35,7 +36,7 @@ async def run_stdio_server(tool_modules=None, server_name=None, log_level="INFO"
     await server.run(transport)
 
 
-async def run_http_server(host: str = "localhost", port: int = 8000):
+async def run_http_server(host: str = "localhost", port: int = 8000) -> None:
     """Run MCP server with HTTP/SSE transport"""
     try:
         import uvicorn
@@ -64,7 +65,7 @@ async def run_http_server(host: str = "localhost", port: int = 8000):
 
     # Add a GET root endpoint for info (POST handled by transport)
     @app.get("/")
-    async def root():
+    async def root() -> dict[str, Any]:
         return {
             "message": "Berry MCP Server",
             "version": "0.1.0",
@@ -84,7 +85,7 @@ async def run_http_server(host: str = "localhost", port: int = 8000):
     await server_instance.serve()
 
 
-def cli_main():
+def cli_main() -> None:
     """CLI entry point"""
     parser = argparse.ArgumentParser(
         description="Berry MCP Server - Universal MCP server framework",
@@ -180,7 +181,7 @@ Examples:
 
 
 # For backwards compatibility
-async def main():
+async def main() -> None:
     """Main entry point (backwards compatibility)"""
     await run_stdio_server()
 

@@ -21,7 +21,7 @@ class RequestHandlerExtra(NamedTuple):
 class MCPProtocol:
     """Handles MCP JSON-RPC message parsing, routing, and formatting"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._request_handlers: dict[
             str,
             Callable[[dict[str, Any], RequestHandlerExtra], Coroutine[Any, Any, Any]],
@@ -37,7 +37,7 @@ class MCPProtocol:
         handler: Callable[
             [dict[str, Any], RequestHandlerExtra], Coroutine[Any, Any, Any]
         ],
-    ):
+    ) -> None:
         """Register a handler for a specific request method"""
         self._request_handlers[method] = handler
         logger.debug(f"Registered request handler for method: {method}")
@@ -188,14 +188,14 @@ class MCPProtocol:
     # Notification sending
     def set_send_implementation(
         self, sender: Callable[[dict[str, Any]], Coroutine[Any, Any, None]]
-    ):
+    ) -> None:
         """Set the function used to send messages out via transport"""
         self._send_message_impl = sender
         logger.info("Send implementation configured for MCPProtocol")
 
     async def send_notification(
         self, method: str, params: dict[str, Any] | None = None
-    ):
+    ) -> None:
         """Build and send a JSON-RPC notification via the configured sender"""
         if not self._send_message_impl or not callable(self._send_message_impl):
             logger.error("Cannot send notification: No send implementation configured")

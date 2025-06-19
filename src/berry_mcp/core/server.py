@@ -31,7 +31,7 @@ class MCPServer:
         logger.info(f"MCPServer '{name}' v{version} initialized")
         self._register_default_handlers()
 
-    def _register_default_handlers(self):
+    def _register_default_handlers(self) -> None:
         """Register the built-in MCP request handlers with the protocol"""
         handlers = {
             "initialize": self._handle_initialize,
@@ -45,11 +45,11 @@ class MCPServer:
         logger.debug(f"Registered {len(handlers)} default MCP handlers")
 
     # Tool registration methods
-    def tool(self):
+    def tool(self) -> Any:
         """Get tool decorator from registry"""
         return self.tool_registry.tool()
 
-    async def run(self, transport: Transport | None = None):
+    async def run(self, transport: Transport | None = None) -> None:
         """Run the MCP server with specified transport"""
         if transport is None:
             transport = StdioTransport()
@@ -86,7 +86,7 @@ class MCPServer:
         finally:
             await transport.close()
 
-    async def connect(self, transport: Transport):
+    async def connect(self, transport: Transport) -> None:
         """Connect the server to a transport"""
         if self.transport:
             logger.warning("MCPServer already connected, overwriting")
@@ -211,7 +211,7 @@ class MCPServer:
             }
 
 
-async def main():
+async def main() -> None:
     """Main entry point for the MCP server"""
     from ..utils.logging import setup_logging
 
