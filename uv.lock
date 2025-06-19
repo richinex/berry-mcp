@@ -97,6 +97,13 @@ web = [
     { name = "selenium" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "black" },
+    { name = "mypy" },
+    { name = "ruff" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "beautifulsoup4", marker = "extra == 'web'", specifier = ">=4.12.0" },
@@ -123,6 +130,13 @@ requires-dist = [
     { name = "uvicorn", marker = "extra == 'http'", specifier = ">=0.34.1" },
 ]
 provides-extras = ["dev", "http", "all", "pdf", "web", "data"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "black", specifier = ">=25.1.0" },
+    { name = "mypy", specifier = ">=1.16.1" },
+    { name = "ruff", specifier = ">=0.12.0" },
+]
 
 [[package]]
 name = "black"

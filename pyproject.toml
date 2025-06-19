@@ -80,10 +80,12 @@ build-backend = "hatchling.build"
 [tool.ruff]
 line-length = 88
 target-version = "py310"
-select = ["E", "F", "I", "B", "UP"]
-ignore = ["E501"]
 
-[tool.ruff.isort]
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501", "E701", "E721", "B904", "B007", "B027", "UP038", "F401"]
+
+[tool.ruff.lint.isort]
 known-first-party = ["berry_mcp"]
 
 [tool.black]
@@ -130,4 +132,11 @@ exclude_lines = [
     "raise NotImplementedError",
     "if 0:",
     "if False:"
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "mypy>=1.16.1",
+    "ruff>=0.12.0",
 ]
