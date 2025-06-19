@@ -33,12 +33,12 @@ jobs:
     
     - name: Run linting
       run: |
-        ruff check src/ tests/ examples/
-        black --check src/ tests/ examples/
+        uv run ruff check src/ tests/ examples/
+        uv run black --check src/ tests/ examples/
     
     - name: Run type checking
       run: |
-        mypy src/berry_mcp/
+        uv run mypy src/berry_mcp/
     
     - name: Run tests with coverage
       run: |
