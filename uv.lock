@@ -60,6 +60,9 @@ source = { editable = "." }
 dependencies = [
     { name = "mcp" },
     { name = "pydantic" },
+    { name = "pymupdf" },
+    { name = "pymupdf4llm" },
+    { name = "pypdf2" },
     { name = "python-dotenv" },
     { name = "typing-extensions" },
 ]
@@ -115,7 +118,10 @@ requires-dist = [
     { name = "numpy", marker = "extra == 'data'", specifier = ">=1.24.0" },
     { name = "pandas", marker = "extra == 'data'", specifier = ">=2.0.0" },
     { name = "pydantic", specifier = ">=2.5.2" },
+    { name = "pymupdf", specifier = ">=1.26.1" },
+    { name = "pymupdf4llm", specifier = ">=0.0.25" },
     { name = "pymupdf4llm", marker = "extra == 'pdf'", specifier = ">=0.0.22" },
+    { name = "pypdf2", specifier = ">=3.0.1" },
     { name = "pypdf2", marker = "extra == 'pdf'", specifier = ">=3.0.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.21.0" },

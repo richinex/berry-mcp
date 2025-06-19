@@ -21,6 +21,14 @@
       "headers": {
         "Content-Type": "application/json"
       }
+    },
+    "berry-mcp-sse-auth": {
+      "type": "sse",
+      "url": "http://localhost:8080",
+      "authorization_token": "YOUR_ACCESS_TOKEN_HERE",
+      "headers": {
+        "Content-Type": "application/json"
+      }
     }
   }
 }

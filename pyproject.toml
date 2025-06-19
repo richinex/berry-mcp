@@ -26,9 +26,11 @@ dependencies = [
     "mcp>=1.6.0",
     "pydantic>=2.5.2",
     "typing-extensions>=4.8.0",
-    
     # Utility dependencies
     "python-dotenv>=1.0.0",
+    "pymupdf>=1.26.1",
+    "pymupdf4llm>=0.0.25",
+    "pypdf2>=3.0.1",
 ]
 
 [project.optional-dependencies]
@@ -43,11 +45,15 @@ http = [
     "fastapi>=0.115.12",
     "uvicorn>=0.34.1",
     "sse-starlette>=2.2.1",
+    "httpx>=0.25.0",  # For OAuth2 HTTP client
+    "aiofiles>=0.8.0",  # For async file operations
 ]
 all = [
     "fastapi>=0.115.12",
     "uvicorn>=0.34.1", 
     "sse-starlette>=2.2.1",
+    "httpx>=0.25.0",
+    "aiofiles>=0.8.0",
 ]
 # Tool-specific dependencies (examples)
 pdf = [
