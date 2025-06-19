@@ -81,7 +81,7 @@ class EnhancedSSETransport(SSETransport):
                 self.app.post("/")(self._handle_message)
                 self.app.post("/message")(self._handle_message)
 
-            # SSE endpoint  
+            # SSE endpoint
             self.app.get("/sse")(self._handle_sse)
             self.app.post("/sse")(self._handle_sse_post)
 
@@ -117,7 +117,9 @@ class EnhancedSSETransport(SSETransport):
             # Authenticate request
             try:
                 if self.auth_middleware:
-                    token_info = await self.auth_middleware.authenticate_request(request)
+                    token_info = await self.auth_middleware.authenticate_request(
+                        request
+                    )
                 else:
                     token_info = None
                 if self.require_auth and not token_info:
