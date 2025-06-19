@@ -5,7 +5,7 @@ Elicitation manager for coordinating human-in-the-loop interactions
 import asyncio
 import logging
 from collections.abc import Callable
-from typing import Any, Optional, Union
+from typing import Any
 
 from .handlers import (
     ConsoleElicitationHandler,
@@ -51,7 +51,8 @@ class ElicitationManager:
             timeout=timeout or self.default_timeout,
         )
 
-        return await self._execute_prompt(prompt)
+        result = await self._execute_prompt(prompt)
+        return bool(result) if result is not None else False
 
     async def prompt_input(
         self,
@@ -76,7 +77,8 @@ class ElicitationManager:
             timeout=timeout or self.default_timeout,
         )
 
-        return await self._execute_prompt(prompt)
+        result = await self._execute_prompt(prompt)
+        return str(result) if result is not None else ""
 
     async def prompt_choice(
         self,
@@ -106,7 +108,11 @@ class ElicitationManager:
                 timeout=timeout or self.default_timeout,
             )
 
-        return await self._execute_prompt(prompt)
+        result = await self._execute_prompt(prompt)
+        if allow_multiple:
+            return list(result) if isinstance(result, (list, tuple)) else []
+        else:
+            return str(result) if result is not None else ""
 
     async def prompt_file_selection(
         self,
@@ -127,7 +133,11 @@ class ElicitationManager:
             timeout=timeout or self.default_timeout,
         )
 
-        return await self._execute_prompt(prompt)
+        result = await self._execute_prompt(prompt)
+        if allow_multiple:
+            return list(result) if isinstance(result, (list, tuple)) else []
+        else:
+            return str(result) if result is not None else ""
 
     async def _execute_prompt(self, prompt: ElicitationPrompt) -> Any:
         """Execute an elicitation prompt"""
@@ -187,7 +197,8 @@ class ElicitationManager:
 
             # If using SSE handler, it might have cancellation support
             if hasattr(self.handler, "cancel_prompt"):
-                return await self.handler.cancel_prompt(prompt_id)
+                result = await self.handler.cancel_prompt(prompt_id)
+                return bool(result) if result is not None else False
 
             # Otherwise, remove from active prompts
             self._active_prompts.pop(prompt_id, None)
@@ -200,7 +211,7 @@ class ElicitationManager:
     ) -> dict[str, Any]:
         """Create enhanced tool info with capability metadata"""
         # Get basic tool info (assuming it exists)
-        tool_info = {
+        tool_info: dict[str, Any] = {
             "name": capability.name,
             "description": capability.description,
         }
@@ -223,7 +234,7 @@ class StreamingResultManager:
         self._active_streams: dict[str, dict[str, Any]] = {}
 
     async def start_stream(
-        self, operation_id: str, tool_name: str, metadata: dict[str, Any] = None
+        self, operation_id: str, tool_name: str, metadata: dict[str, Any] | None = None
     ) -> None:
         """Start a streaming operation"""
         self._active_streams[operation_id] = {
