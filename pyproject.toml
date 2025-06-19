@@ -90,7 +90,7 @@ target-version = "py310"
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
 ignore = ["E501", "E701", "E721", "B904", "B007", "B027", "UP038", "F401"]
-exclude = ["tests/"]
+exclude = ["tests/", "examples/"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["berry_mcp"]
@@ -98,6 +98,12 @@ known-first-party = ["berry_mcp"]
 [tool.black]
 line-length = 88
 target-version = ['py310']
+exclude = '''
+/(
+    tests/
+  | examples/
+)/
+'''
 
 [tool.mypy]
 python_version = "3.10"
