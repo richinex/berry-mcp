@@ -426,7 +426,7 @@ class TestConsoleElicitationHandler:
     async def test_console_handler_error(self):
         """Test console handler error handling"""
         handler = ConsoleElicitationHandler(use_input=False)
-        prompt = PromptBuilder.input("Test", "Enter:")
+        prompt = PromptBuilder.text_input("Test", "Enter:")
         error = Exception("Test error")
         
         result = await handler.handle_error(prompt, error)
