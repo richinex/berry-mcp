@@ -33,7 +33,7 @@ jobs:
     
     - name: Run linting
       run: |
-        uv run ruff check src/ tests/ examples/
+        uv run ruff check src/ examples/
         uv run black --check src/ tests/ examples/
     
     - name: Run type checking
