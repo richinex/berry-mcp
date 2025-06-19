@@ -271,11 +271,12 @@ async def test_server_message_loop_error_handling(server):
 def test_server_main_function():
     """Test main function creates and runs server"""
     from berry_mcp.core.server import main
-    
+
     # Test that main function exists and is callable
     assert callable(main)
-    
+
     # Test the function signature
     import inspect
+
     sig = inspect.signature(main)
     assert len(sig.parameters) == 0  # main() takes no parameters

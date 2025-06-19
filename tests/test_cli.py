@@ -170,7 +170,7 @@ def test_server_name_from_env():
     """Test server name configuration from environment"""
     # Test environment variable access pattern
     test_name = "env-server"
-    
+
     with patch.dict(os.environ, {"BERRY_MCP_SERVER_NAME": test_name}):
         # Verify environment variable is accessible
         assert os.getenv("BERRY_MCP_SERVER_NAME") == test_name
@@ -207,7 +207,7 @@ def test_server_error_handling():
     """Test server handles startup errors gracefully"""
     # Test error handling pattern
     test_error = "Server error"
-    
+
     # Verify we can catch and handle expected exceptions
     try:
         raise Exception(test_error)
