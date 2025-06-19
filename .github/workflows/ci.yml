@@ -28,8 +28,8 @@ jobs:
     
     - name: Install dependencies
       run: |
-        uv pip install --system -e ".[dev]"
-        uv pip install --system pytest-cov pytest-xdist
+        uv pip install --system -e ".[dev,http]"
+        uv pip install --system pytest-cov pytest-xdist coverage[toml]
     
     - name: Run linting
       run: |
@@ -45,7 +45,7 @@ jobs:
         pytest tests/ --cov=berry_mcp --cov-report=xml --cov-report=term-missing -v
     
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
         flags: unittests

@@ -87,11 +87,11 @@ async def test_sse_transport_initialization():
 async def test_sse_transport_without_fastapi():
     """Test SSE transport fails gracefully without FastAPI"""
     
-    # Mock missing FastAPI
-    with patch.dict('sys.modules', {'fastapi': None}):
-        with pytest.raises(ImportError):
-            from berry_mcp.core.transport import SSETransport as TestSSETransport
-            TestSSETransport("localhost", 8000)
+    # Mock missing FastAPI by patching the FASTAPI_AVAILABLE flag
+    with patch('berry_mcp.core.transport.FASTAPI_AVAILABLE', False):
+        with pytest.raises(ImportError, match="FastAPI and related dependencies required"):
+            from berry_mcp.core.transport import SSETransport
+            SSETransport("localhost", 8000)
 
 
 @pytest.mark.asyncio
