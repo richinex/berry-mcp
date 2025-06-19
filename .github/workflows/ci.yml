@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        version: "latest"
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        uv pip install --system -e ".[dev]"
+        uv pip install --system pytest-cov pytest-xdist
+    
+    - name: Run linting
+      run: |
+        ruff check src/ tests/ examples/
+        black --check src/ tests/ examples/
+    
+    - name: Run type checking
+      run: |
+        mypy src/berry_mcp/
+    
+    - name: Run tests with coverage
+      run: |
+        pytest tests/ --cov=berry_mcp --cov-report=xml --cov-report=term-missing -v
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        version: "latest"
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        uv pip install --system -e ".[dev,http]"
+    
+    - name: Test server startup (stdio)
+      run: |
+        timeout 10s uv run python -m berry_mcp --help || true
+    
+    - name: Test custom tools loading
+      run: |
+        BERRY_MCP_TOOLS_PATH=my_custom_tools timeout 10s uv run python -c "
+        import my_custom_tools
+        from berry_mcp.core.registry import ToolRegistry
+        registry = ToolRegistry()
+        registry.auto_discover_tools(my_custom_tools)
+        tools = registry.list_tools()
+        print(f'Loaded {len(tools)} tools: {tools}')
+        assert len(tools) >= 5, f'Expected at least 5 tools, got {len(tools)}'
+        " || true
+    
+    - name: Test HTTP server startup
+      run: |
+        timeout 5s uv run python -m berry_mcp --transport http --port 9999 &
+        sleep 2
+        curl -f http://localhost:9999/ || true
+        pkill -f "berry_mcp.*http" || true

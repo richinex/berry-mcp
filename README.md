@@ -1,5 +1,11 @@
 # Berry MCP Server
 
+[![CI](https://github.com/richinex/berry-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/richinex/berry-mcp/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/richinex/berry-mcp/branch/main/graph/badge.svg)](https://codecov.io/gh/richinex/berry-mcp)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+
 A universal Model Context Protocol (MCP) server framework that makes it easy to create and deploy custom tool servers for AI assistants like Claude.
 
 ## ✨ Features
