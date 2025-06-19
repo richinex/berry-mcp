@@ -53,22 +53,24 @@ async def run_http_server(host: str = "localhost", port: int = 8000):
     transport = SSETransport(host, port)
     transport.app = app
     
-    # Connect server to transport
-    await server.connect(transport)
-    
     # Auto-discover tools from tools package
     from . import tools
     server.tool_registry.auto_discover_tools(tools)
     
-    # Add a root endpoint
+    # Connect server to transport AFTER tools are loaded
+    await server.connect(transport)
+    
+    # Add a GET root endpoint for info (POST handled by transport)
     @app.get("/")
     async def root():
         return {
             "message": "Berry MCP Server",
             "version": "0.1.0",
             "transport": "HTTP/SSE",
+            "tools_count": len(server.tool_registry.tools),
             "endpoints": {
-                "message": "POST /message - Send MCP messages",
+                "root": "POST / - Send MCP messages (VS Code compatible)",
+                "message": "POST /message - Send MCP messages", 
                 "sse": "GET /sse - Server-sent events stream",
                 "ping": "GET /ping - Health check"
             }

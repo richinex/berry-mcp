@@ -244,9 +244,11 @@ class SSETransport(Transport):
         
         logger.info("SSETransport: Configuring routes")
         
-        # Add routes
-        self.app.post("/message")(self._handle_message)
+        # Add routes - VS Code sends messages to root path
+        self.app.post("/")(self._handle_message)  # Primary endpoint for VS Code
+        self.app.post("/message")(self._handle_message)  # Alternative endpoint
         self.app.get("/sse", response_class=EventSourceResponse)(self._handle_sse)
+        self.app.post("/sse")(self._handle_sse_post)  # For VS Code MCP client compatibility
         self.app.get("/ping")(self._handle_ping)
         
         logger.info(f"SSETransport: Ready for server on {self.host}:{self.port}")
@@ -306,6 +308,10 @@ class SSETransport(Transport):
                 logger.info(f"SSE client disconnected. Remaining: {len(self.clients)}")
 
         return EventSourceResponse(event_generator())
+
+    async def _handle_sse_post(self, request: Request, background_tasks: BackgroundTasks):
+        """Handle POST requests to /sse endpoint (for VS Code MCP compatibility)"""
+        return await self._handle_message(request, background_tasks)
 
     async def _run_handler_background(self, request_data: Dict[str, Any]):
         """Run message handler in background and send result via SSE"""
@@ -385,8 +391,30 @@ class SSETransport(Transport):
                     content={"error": "No message handler configured"}
                 )
             
+            # Handle initialize request directly with immediate JSON response
+            if method == "initialize":
+                logger.info(f"Processing initialize request synchronously")
+                response_data = await self._message_handler(request_data)
+                
+                if isinstance(response_data, dict):
+                    # For initialize, return the response directly in HTTP body
+                    return JSONResponse(
+                        status_code=200,
+                        content=response_data
+                    )
+                else:
+                    logger.error(f"Invalid initialize response: {type(response_data)}")
+                    return JSONResponse(
+                        status_code=500,
+                        content={
+                            "jsonrpc": "2.0",
+                            "id": request_id,
+                            "error": {"code": -32000, "message": "Initialize failed"}
+                        }
+                    )
+            
             # Handle tools/call in background for immediate response
-            if method == "tools/call":
+            elif method == "tools/call":
                 if not isinstance(request_data.get("params"), dict):
                     return JSONResponse(
                         status_code=400,

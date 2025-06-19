@@ -1,11 +1,18 @@
 {
   "inputs": [],
   "servers": {
-    "berry-mcp-test": {
+    "berry-mcp-stdio": {
       "type": "stdio",
-      "command": "python",
-      "args": ["-m", "berry_mcp"],
+      "command": "/home/richard/.local/bin/uv",
+      "args": ["run", "python", "-m", "berry_mcp"],
       "env": {}
+    },
+    "berry-mcp-sse": {
+      "type": "sse",
+      "url": "http://localhost:8080",
+      "headers": {
+        "Content-Type": "application/json"
+      }
     }
   }
 }
