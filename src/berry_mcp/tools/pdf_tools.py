@@ -16,8 +16,8 @@ try:
     PYMUPDF_AVAILABLE = True
 except ImportError:
     PYMUPDF_AVAILABLE = False
-    pymupdf4llm = None
-    pymupdf = None
+    pymupdf4llm = None  # type: ignore
+    pymupdf = None  # type: ignore
 
 try:
     import PyPDF2
@@ -25,7 +25,7 @@ try:
     PYPDF2_AVAILABLE = True
 except ImportError:
     PYPDF2_AVAILABLE = False
-    PyPDF2 = None
+    PyPDF2 = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 

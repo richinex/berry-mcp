@@ -86,7 +86,7 @@ class AuthenticationMiddleware:
         try:
             credentials = await self._security(request)
             if credentials:
-                return credentials.credentials
+                return str(credentials.credentials)
         except Exception as e:
             logger.debug(f"Failed to extract token: {e}")
 
