@@ -12,16 +12,16 @@ from pathlib import Path
 # Add src to path for development
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from berry_mcp.core.server import MCPServer
+from berry_mcp.auth import OAuth2Config, OAuth2Manager
 from berry_mcp.core.enhanced_transport import EnhancedSSETransport
-from berry_mcp.auth import OAuth2Manager, OAuth2Config
-from berry_mcp.elicitation import ElicitationManager, PromptBuilder, CapabilityBuilder
+from berry_mcp.core.server import MCPServer
+from berry_mcp.elicitation import CapabilityBuilder, ElicitationManager, PromptBuilder
 from berry_mcp.tools.decorators import tool
 from berry_mcp.utils.logging import setup_logging
 
 try:
-    from fastapi import FastAPI
     import uvicorn
+    from fastapi import FastAPI
 
     FASTAPI_AVAILABLE = True
 except ImportError:
@@ -243,7 +243,7 @@ class EnhancedMCPServer:
             logger.info(
                 f"  - Elicitation (Human-in-the-loop): {'Yes' if self.elicitation_manager else 'No'}"
             )
-            logger.info(f"  - Enhanced SSE Transport: Yes")
+            logger.info("  - Enhanced SSE Transport: Yes")
 
             if self.oauth_manager:
                 logger.info("OAuth2 Endpoints:")
