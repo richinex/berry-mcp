@@ -26,7 +26,7 @@ class ToolOutputSchema:
         format: str | None = None,
     ) -> None:
         """Add a property to the schema"""
-        prop_def = {"type": prop_type, "description": description}
+        prop_def: dict[str, Any] = {"type": prop_type, "description": description}
 
         if enum:
             prop_def["enum"] = enum

@@ -3,7 +3,7 @@ Elicitation module for Berry MCP Server
 Enables human-in-the-loop interactions and enhanced tool capabilities
 """
 
-from .handlers import ConsoleElicitationHandler, ElicitationHandler
+from .handlers import ConsoleElicitationHandler, ElicitationHandler, SSEElicitationHandler
 from .manager import ElicitationManager
 from .prompts import (
     ChoicePrompt,
@@ -25,6 +25,7 @@ __all__ = [
     "PromptBuilder",
     "ElicitationHandler",
     "ConsoleElicitationHandler",
+    "SSEElicitationHandler",
     "ToolOutputSchema",
     "CapabilityMetadata",
     "CapabilityBuilder",

@@ -84,7 +84,7 @@ class AuthenticationMiddleware:
             return None
 
         try:
-            credentials: HTTPAuthorizationCredentials = await self._security(request)
+            credentials = await self._security(request)
             if credentials:
                 return credentials.credentials
         except Exception as e:
@@ -117,15 +117,15 @@ class AuthenticationMiddleware:
             return response
 
         except TokenExpiredError:
-            if FASTAPI_AVAILABLE and HTTPException:
+            if FASTAPI_AVAILABLE:
                 raise HTTPException(status_code=401, detail="Token expired")
             raise
         except InvalidTokenError:
-            if FASTAPI_AVAILABLE and HTTPException:
+            if FASTAPI_AVAILABLE:
                 raise HTTPException(status_code=401, detail="Invalid token")
             raise
         except AuthenticationError as e:
-            if FASTAPI_AVAILABLE and HTTPException:
+            if FASTAPI_AVAILABLE:
                 raise HTTPException(status_code=401, detail=str(e))
             raise
 
@@ -191,7 +191,7 @@ class FileTokenStorage(TokenStorage):
         """Store token to file"""
         import json
 
-        import aiofiles
+        import aiofiles  # type: ignore
 
         file_path = self._get_token_file(key)
         try:
@@ -206,7 +206,7 @@ class FileTokenStorage(TokenStorage):
         import json
         import os
 
-        import aiofiles
+        import aiofiles  # type: ignore
 
         file_path = self._get_token_file(key)
         if not os.path.exists(file_path):
