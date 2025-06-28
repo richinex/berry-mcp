@@ -203,6 +203,7 @@ __marimo__/
 # Claude Code specific
 .claude/
 .claude/settings.local.json
+CLAUDE.md
 
 # Local development files
 examples/workspace/
